@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Healthcare Management System</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; background-color: #f0f2f5; color: #1c1e21; }
+        .container { max-width: 1000px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 5px solid #0d6efd; }
+        .full { grid-column: span 2; }
+        h2 { text-align: center; grid-column: span 2; color: #0d6efd; }
+        input, select { width: 95%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; display: block; }
+        button { width: 100%; padding: 12px; cursor: pointer; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        
+        .btn-reg { background-color: #24292e; }
+        .btn-vit { background-color: #0d6efd; }
+        .btn-doc { background-color: #6f42c1; }
+        .btn-apt { background-color: #fd7e14; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f8f9fa; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #ddd; font-size: 14px; }
+        .danger { border-left-color: #dc3545; background-color: #fff5f5; }
+        .status-msg { font-weight: bold; color: #28a745; margin-top: 10px; text-align: center; min-height: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🏥 Smart Healthcare Management System</h2>
+
+        <div class="card">
+            <h3>🆕 Register Patient</h3>
+            <input type="text" id="newName" placeholder="Full Name">
+            <input type="number" id="newAge" placeholder="Age">
+            <select id="newGender">
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+                <option value="Other">Other</option>
+            </select>
+            <input type="text" id="newPhone" placeholder="Phone Number">
+            <button class="btn-reg" onclick="registerPatient()">Register Patient</button>
+            <div id="regStatus" class="status-msg"></div>
+        </div>
+
+        <div class="card" style="border-top-color: #6f42c1;">
+            <h3>👨‍⚕️ Add New Doctor</h3>
+            <input type="text" id="docName" placeholder="Doctor Name (e.g. Dr. Smith)">
+            <input type="text" id="docSpec" placeholder="Specialty (e.g. Cardiology)">
+            <button class="btn-doc" onclick="addDoctor()">Add Doctor</button>
+            <div id="docStatus" class="status-msg"></div>
+        </div>
+
+        <div class="card">
+            <h3>💓 Record Vitals</h3>
+            <input type="number" id="v_pid" placeholder="Patient ID">
+            <input type="number" id="v_hr" placeholder="Heart Rate (BPM)">
+            <input type="number" id="v_spo2" placeholder="SpO2 (%)">
+            <button class="btn-vit" onclick="saveVitals()">Save Vitals</button>
+            <div id="vitStatus" class="status-msg"></div>
+        </div>
+
+        <div class="card" style="border-top-color: #fd7e14;">
+            <h3>📅 Book Appointment</h3>
+            <input type="number" id="a_pid" placeholder="Patient ID">
+            <input type="number" id="a_did" placeholder="Doctor ID">
+            <input type="datetime-local" id="a_date">
+            <button class="btn-apt" onclick="bookAppointment()">Confirm Appointment</button>
+            <div id="aptStatus" class="status-msg"></div>
+        </div>
+
+        <div class="card full">
+            <h3>📊 Hospital Real-Time Data</h3>
+            <div class="data-grid">
+                <div>
+                    <h4>Live Vitals</h4>
+                    <ul id="vitalsList"></ul>
+                </div>
+                <div>
+                    <h4>Registered Doctors</h4>
+                    <ul id="doctorsList"></ul>
+                </div>
+                <div>
+                    <h4>Scheduled Appointments</h4>
+                    <ul id="appointmentsList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000';
+
+        // Helper to refresh everything
+        async function refreshData() {
+            try {
+                // Fetch Vitals
+                const vRes = await fetch(`${API}/get-vitals`);
+                const vData = await vRes.json();
+                document.getElementById('vitalsList').innerHTML = vData.map(v => `
+                    <li class="${v.HeartRate > 100 || v.SpO2 < 95 ? 'danger' : ''}">
+                        <strong>${v.PatientName}</strong><br>
+                        ${v.HeartRate} BPM | ${v.SpO2}% SpO2
+                    </li>`).join('');
+
+                // Fetch Doctors
+                const dRes = await fetch(`${API}/get-doctors`);
+                const dData = await dRes.json();
+                document.getElementById('doctorsList').innerHTML = dData.map(d => `
+                    <li><strong>ID ${d.DID}: ${d.Name}</strong><br>${d.Specialty}</li>`).join('');
+
+                // Fetch Appointments
+                const aRes = await fetch(`${API}/get-appointments`);
+                const aData = await aRes.json();
+                document.getElementById('appointmentsList').innerHTML = aData.map(a => `
+                    <li><strong>${a.PatientName}</strong> with ${a.DoctorName}<br>
+                    <small>${new Date(a.ApptDate).toLocaleString()}</small></li>`).join('');
+            } catch (err) { console.error("Refresh Error:", err); }
+        }
+
+        async function registerPatient() {
+            const body = {
+                name: document.getElementById('newName').value,
+                age: document.getElementById('newAge').value,
+                gender: document.getElementById('newGender').value,
+                phone: document.getElementById('newPhone').value
+            };
+            const res = await fetch(`${API}/register-patient`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            document.getElementById('regStatus').innerText = "Registered! ID: " + data.newID;
+            document.getElementById('v_pid').value = data.newID;
+            refreshData();
+        }
+
+        async function addDoctor() {
+            const body = {
+                name: document.getElementById('docName').value,
+                specialty: document.getElementById('docSpec').value
+            };
+            await fetch(`${API}/register-doctor`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            document.getElementById('docStatus').innerText = "Doctor Added!";
+            refreshData();
+        }
+
+        async function saveVitals() {
+            const body = {
+                pid: document.getElementById('v_pid').value,
+                heartRate: document.getElementById('v_hr').value,
+                spo2: document.getElementById('v_spo2').value
+            };
+            await fetch(`${API}/save-vitals`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            document.getElementById('vitStatus').innerText = "Vitals Saved!";
+            refreshData();
+        }
+
+        async function bookAppointment() {
+            const body = {
+                pid: document.getElementById('a_pid').value,
+                did: document.getElementById('a_did').value,
+                apptDate: document.getElementById('a_date').value
+            };
+            await fetch(`${API}/book-appointment`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            document.getElementById('aptStatus').innerText = "Appointment Booked!";
+            refreshData();
+        }
+
+        // Initial Load
+        window.onload = refreshData;
+    </script>
+</body>
+</html>
