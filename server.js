@@ -3,17 +3,17 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
 const app = express();
-
+require('dotenv').config();
 app.use(cors());
 app.use(express.json());
 
 // DATABASE CONNECTION: Configured for your TiDB Cluster
 const db = mysql.createPool({
-    host: 'gateway01.ap-southeast-1.prod.aws.tidbcloud.com',
-    port: 4000,
-    user: '2fGfzKyqk34S2D8.root',
-    password: 'EVPBe', // From your tGFxfg snippet
-    database: 'test',
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
