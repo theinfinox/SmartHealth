@@ -100,4 +100,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(3000, () => console.log('Healthcare server is LIVE on http://localhost:3000'));
+// Replace the last line:
+// app.listen(3000, () => console.log('Healthcare server is LIVE on http://localhost:3000'));
+
+// With this:
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Healthcare server is LIVE on port ${PORT}`));

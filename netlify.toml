@@ -1,0 +1,41 @@
+[[redirects]]
+  from = "/register-patient"
+  to = "https://YOUR_APP_NAME.onrender.com/register-patient"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/register-doctor"
+  to = "https://YOUR_APP_NAME.onrender.com/register-doctor"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/save-vitals"
+  to = "https://YOUR_APP_NAME.onrender.com/save-vitals"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/book-appointment"
+  to = "https://YOUR_APP_NAME.onrender.com/book-appointment"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/get-vitals"
+  to = "https://YOUR_APP_NAME.onrender.com/get-vitals"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/get-doctors"
+  to = "https://YOUR_APP_NAME.onrender.com/get-doctors"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/get-appointments"
+  to = "https://YOUR_APP_NAME.onrender.com/get-appointments"
+  status = 200
+  force = true
